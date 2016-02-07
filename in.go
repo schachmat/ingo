@@ -64,12 +64,12 @@ func saveConfig(configPath string) {
 
 	writer := bufio.NewWriter(fout)
 	flag.VisitAll(func(f *flag.Flag) {
-		fmt.Fprintln(writer, "# %v", strings.Replace(f.Usage, "\n", "\n# ", -1))
-		fmt.Fprintln(writer, "%v=%v", f.Name, f.Value.String())
+		fmt.Fprintln(writer, "#", strings.Replace(f.Usage, "\n", "\n# ", -1))
+		fmt.Fprintf(writer, "%v=%v\n", f.Name, f.Value.String())
 	})
 	fmt.Fprintln(writer, "\n\n# The following flags are not used anymore!")
 	for key, val := range obsoleteKeys {
-		fmt.Fprintln(writer, "%v=%v", key, val)
+		fmt.Fprintf(writer, "%v=%v\n", key, val)
 	}
 	writer.Flush()
 }
