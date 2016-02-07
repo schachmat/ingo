@@ -43,6 +43,9 @@ func loadConfig(configPath string) {
 		}
 
 		split := strings.SplitN(line, "=", 2)
+		if len(split) != 2 {
+			continue
+		}
 		key, val := split[0], split[1]
 
 		if err := flag.Set(key, val); err != nil {
