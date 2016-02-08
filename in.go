@@ -19,9 +19,7 @@ func Parse(configPath string) {
 	}
 
 	loadConfig(configPath)
-
 	saveConfig(configPath)
-
 	flag.Parse()
 }
 
@@ -46,7 +44,7 @@ func loadConfig(configPath string) {
 		if len(split) != 2 {
 			continue
 		}
-		key, val := split[0], split[1]
+		key, val := strings.TrimSpace(split[0]), strings.TrimSpace(split[1])
 
 		if err := flag.Set(key, val); err != nil {
 			obsoleteKeys[key] = val
