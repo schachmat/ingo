@@ -23,6 +23,9 @@ go get -u github.com/schachmat/ingo
 
 ##Usage example
 
+Just setup your flags with defaults like you are used to do. Instead of
+`flag.Parse()` you have to call `ingo.Parse(CONFIG_FILE_PATH)`. Thats all.
+
 ```go
 package main
 
