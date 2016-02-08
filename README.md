@@ -17,66 +17,77 @@ file.
 
 ##Installation
 
-    go get -u github.com/schachmat/ingo
+```shell
+go get -u github.com/schachmat/ingo
+```
 
 ##Usage example
 
-    package main
-    
-    import (
-    	"flag"
-    	"fmt"
-    	"github.com/schachmat/ingo"
-    )
-    
-    func main() {
-    	num := flag.Int("num", 3, "`NUMBER` of times to\ndo a barrel roll")
-    	location := flag.String("location", "space", "`WHERE` to do the barrel roll")
-    	ingo.Parse("lol")
-    	fmt.Println(*num, *location)
-    }
+```go
+package main
+
+import (
+	"flag"
+	"fmt"
+	"github.com/schachmat/ingo"
+)
+
+func main() {
+	num := flag.Int("num", 3, "`NUMBER` of times to\ndo a barrel roll")
+	location := flag.String("location", "space", "`WHERE` to do the barrel roll")
+	ingo.Parse("lol")
+	fmt.Println(*num, *location)
+}
+```
 
 This code will create the following config file `lol` when run:
 
-
-    # WHERE to do the barrel roll
-    location=space
-    # NUMBER of times to
-    # do a barrel roll
-    num=3
+```shell
+# WHERE to do the barrel roll
+location=space
+# NUMBER of times to
+# do a barrel roll
+num=3
+```
 
 If you change num to 5 in the config file, it will be persistent on all future
 runs:
 
-    # WHERE to do the barrel roll
-    location=space
-    # NUMBER of times to
-    # do a barrel roll
-    num=5
+```shell
+# WHERE to do the barrel roll
+location=space
+# NUMBER of times to
+# do a barrel roll
+num=5
+```
 
 If you add a new flag `style` to your programm, it will be added to the config
 file on the first run using the default value from the flag:
 
-    # WHERE to do the barrel roll
-    location=space
-    # NUMBER of times to
-    # do a barrel roll
-    num=5
-    # HOW to do the barrel roll
-    style=epic
+```shell
+# WHERE to do the barrel roll
+location=space
+# NUMBER of times to
+# do a barrel roll
+num=5
+# HOW to do the barrel roll
+style=epic
+```
 
 If you remove the location flag from your programm, the config entry will be
 rewritten to this:
 
-    # NUMBER of times to
-    # do a barrel roll
-    num=5
-    # HOW to do the barrel roll
-    style=epic
-    
-    
-    # The following flags are not used anymore!
-    location=space
+```shell
+# NUMBER of times to
+# do a barrel roll
+num=5
+# HOW to do the barrel roll
+style=epic
+
+
+# The following flags are not used anymore!
+location=space
+```
 
 ##License - ISC
 
