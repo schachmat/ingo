@@ -15,11 +15,15 @@ var (
 
 func Parse(configPath string) {
 	if flag.Parsed() {
-		return
+		log.Fatalf("flags have been parsed already.")
 	}
 
 	loadConfig(configPath)
 	saveConfig(configPath)
+
+	// global flags overwrite others and also are printed last so users don't
+	// have to scroll and the program doesn't exit before the other usages are
+	// printed with `-h`.
 	flag.Parse()
 }
 
@@ -40,6 +44,7 @@ func loadConfig(configPath string) {
 			continue
 		}
 
+		// find first assignment symbol and parse key, val
 		i := strings.IndexAny(line, "=:")
 		if i == -1 {
 			continue
@@ -67,10 +72,13 @@ func saveConfig(configPath string) {
 		fmt.Fprintln(writer, "#", strings.Replace(usage, "\n", "\n# ", -1))
 		fmt.Fprintf(writer, "%v=%v\n", f.Name, f.Value.String())
 	})
+
+	// if we have obsolete keys left from the old config, preserve them in an
+	// additional section at the end of the file
 	if len(obsoleteKeys) == 0 {
 		return
 	}
-	fmt.Fprintln(writer, "\n\n# The following flags are not used anymore!")
+	fmt.Fprintln(writer, "\n\n# The following options are not used currently!")
 	for key, val := range obsoleteKeys {
 		fmt.Fprintf(writer, "%v=%v\n", key, val)
 	}
