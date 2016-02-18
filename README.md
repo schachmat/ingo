@@ -1,6 +1,4 @@
-#ingo
-
-ingo is a simple Go library helping you to persist flags in a ini-like config
+**ingo** is a simple Go library helping you to persist flags in a ini-like config
 file.
 
 ##Features and limitations
