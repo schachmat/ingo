@@ -40,11 +40,11 @@ func loadConfig(configPath string) {
 			continue
 		}
 
-		split := strings.SplitN(line, "=", 2)
-		if len(split) != 2 {
+		i := strings.IndexAny(line, "=:")
+		if i == -1 {
 			continue
 		}
-		key, val := strings.TrimSpace(split[0]), strings.TrimSpace(split[1])
+		key, val := strings.TrimSpace(line[:i]), strings.TrimSpace(line[i+1:])
 
 		if err := flag.Set(key, val); err != nil {
 			obsoleteKeys[key] = val
