@@ -14,6 +14,8 @@ file.
 * write defaults to config file, if they are not set there already
 * every flag in the config file has the flag usage prepended as a comment
 * old flags, which are not used anymore are not removed
+* flags must not contain the characters `:` and `=` as they are used as
+  separator in the config file
 * no sections, namespaces or FlagSets other than the default one
 
 ##Installation
