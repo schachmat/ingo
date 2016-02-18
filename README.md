@@ -39,14 +39,16 @@ import (
 )
 
 func main() {
-	num := flag.Int("num", 3, "`NUMBER` of times to\ndo a barrel roll")
+	num := flag.Int("num", 3, "`NUMBER` of times to\n    \tdo a barrel roll")
 	location := flag.String("location", "space", "`WHERE` to do the barrel roll")
 	ingo.Parse("lol")
 	fmt.Println(*num, *location)
 }
 ```
 
-This code will create the following config file `lol` when run:
+The `\n    \t` separator (one newline, four spaces, one tab) will ensure that
+multi-line usage strings will be lay out correctly in the config file *and* in
+the `-h` help message. The code will create the following config file `lol`:
 
 ```shell
 # WHERE to do the barrel roll

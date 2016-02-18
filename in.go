@@ -69,7 +69,7 @@ func saveConfig(configPath string) {
 	defer writer.Flush()
 	flag.VisitAll(func(f *flag.Flag) {
 		_, usage := flag.UnquoteUsage(f)
-		fmt.Fprintln(writer, "#", strings.Replace(usage, "\n", "\n# ", -1))
+		fmt.Fprintln(writer, "#", strings.Replace(usage, "\n    \t", "\n# ", -1))
 		fmt.Fprintf(writer, "%v=%v\n", f.Name, f.Value.String())
 	})
 
