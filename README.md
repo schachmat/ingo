@@ -5,6 +5,7 @@ file.
 
 ##Features and limitations
 
+* Requires Go 1.5
 * automatically creates config file, if it does not exist yet
 * option value priorities (from high to low):
   0. flags given on the commandline
