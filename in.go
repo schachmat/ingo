@@ -20,10 +20,6 @@ func Parse(configPath string) {
 
 	loadConfig(configPath)
 	saveConfig(configPath)
-
-	// global flags overwrite others and also are printed last so users don't
-	// have to scroll and the program doesn't exit before the other usages are
-	// printed with `-h`.
 	flag.Parse()
 }
 
