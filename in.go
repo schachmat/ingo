@@ -79,7 +79,7 @@ func saveConfig(configPath string) {
 	fmt.Fprintln(os.Stderr, "! Check and update", configPath, " as necessary and")
 	fmt.Fprintln(os.Stderr, "! remove the last \"deprecated\" paragraph to disable this message!")
 	fmt.Fprintln(os.Stderr, "!!!!!!!!!!")
-	fmt.Fprintln(writer, "\n\n# The following options are probably deprecated not used currently!")
+	fmt.Fprintln(writer, "\n\n# The following options are probably deprecated and not used currently!")
 	for key, val := range obsoleteKeys {
 		fmt.Fprintf(writer, "%v=%v\n", key, val)
 	}
