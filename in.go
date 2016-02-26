@@ -86,11 +86,11 @@ func saveConfig(appName, configPath string) error {
 	fmt.Fprintln(writer, "# This config has https://github.com/schachmat/ingo syntax.")
 	fmt.Fprintln(writer, "# Empty lines or lines starting with # will be ignored.")
 	fmt.Fprintln(writer, "# All other lines must look like `KEY=VALUE` (without the quotes).")
-	fmt.Fprintf(writer, "# The VALUE must not be enclosed in quotes!\n\n")
+	fmt.Fprintln(writer, "# The VALUE must not be enclosed in quotes!")
 
 	flag.VisitAll(func(f *flag.Flag) {
 		_, usage := flag.UnquoteUsage(f)
-		fmt.Fprintf(writer, "# %s (default %v)\n", strings.Replace(usage, "\n    \t", "\n# ", -1), f.DefValue)
+		fmt.Fprintf(writer, "\n# %s (default %v)\n", strings.Replace(usage, "\n    \t", "\n# ", -1), f.DefValue)
 		fmt.Fprintf(writer, "%v=%v\n", f.Name, f.Value.String())
 	})
 
