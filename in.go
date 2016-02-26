@@ -90,7 +90,7 @@ func saveConfig(appName, configPath string) error {
 
 	flag.VisitAll(func(f *flag.Flag) {
 		_, usage := flag.UnquoteUsage(f)
-		fmt.Fprintln(writer, "#", strings.Replace(usage, "\n    \t", "\n# ", -1))
+		fmt.Fprintf(writer, "# %s (default %v)\n", strings.Replace(usage, "\n    \t", "\n# ", -1), f.DefValue)
 		fmt.Fprintf(writer, "%v=%v\n", f.Name, f.Value.String())
 	})
 
