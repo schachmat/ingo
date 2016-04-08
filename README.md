@@ -11,6 +11,9 @@ file.
   0. defaults given when flags are initialized
 * write defaults to config file, if they are not set there already
 * every flag in the config file has the flag usage prepended as a comment
+* shorthand flags pointing to the same variable as another flag will not be
+  written to the config file to reduce noise. Both short and long version will
+  still show up in the `-h` output.
 * old flags, which are not used anymore are not removed
 * when old flags are found, a warning is printed to stderr (see example below)
 * flags must not contain the characters `:` and `=` as they are used as
@@ -40,6 +43,7 @@ import (
 func main() {
 	num := flag.Int("num", 3, "`NUMBER` of times to\n    \tdo a barrel roll")
 	location := flag.String("location", "space", "`WHERE` to do the barrel roll")
+	flag.StringVar(location, "l", "space", "`WHERE` to do the barrel roll (shorthand)")
 	ingo.Parse("FILEPATH")
 	fmt.Println(*num, *location)
 }
@@ -52,6 +56,7 @@ the `-h` help message. The code will create the following config file `FILEPATH`
 ```shell
 # WHERE to do the barrel roll
 location=space
+
 # NUMBER of times to
 # do a barrel roll
 num=3
@@ -63,6 +68,7 @@ runs:
 ```shell
 # WHERE to do the barrel roll
 location=space
+
 # NUMBER of times to
 # do a barrel roll
 num=5
@@ -74,9 +80,11 @@ file on the first run using the default value from the flag:
 ```shell
 # WHERE to do the barrel roll
 location=space
+
 # NUMBER of times to
 # do a barrel roll
 num=5
+
 # HOW to do the barrel roll
 style=epic
 ```
@@ -88,6 +96,7 @@ rewritten to this:
 # NUMBER of times to
 # do a barrel roll
 num=5
+
 # HOW to do the barrel roll
 style=epic
 
@@ -105,6 +114,17 @@ stderr:
 ! Check and update FILEPATH as necessary and
 ! remove the last "deprecated" paragraph to disable this message!
 !!!!!!!!!!
+```
+
+All config files will also have a header like the following:
+
+```shell
+# [PROJECTNAME] configuration
+#
+# This config has https://github.com/schachmat/ingo syntax.
+# Empty lines or lines starting with # will be ignored.
+# All other lines must look like `KEY=VALUE` (without the quotes).
+# The VALUE must not be enclosed in quotes!
 ```
 
 ##License - ISC

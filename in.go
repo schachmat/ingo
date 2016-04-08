@@ -8,6 +8,7 @@ import (
 	"os/user"
 	"path"
 	"strings"
+	"unicode/utf8"
 )
 
 var (
@@ -88,10 +89,20 @@ func saveConfig(appName, configPath string) error {
 	fmt.Fprintln(writer, "# All other lines must look like `KEY=VALUE` (without the quotes).")
 	fmt.Fprintln(writer, "# The VALUE must not be enclosed in quotes!")
 
+	// find flags pointing to the same variable. We will only write the longest
+	// named flag to the config file, the shorthand version is ignored.
+	deduped := make(map[flag.Value]flag.Flag)
 	flag.VisitAll(func(f *flag.Flag) {
-		_, usage := flag.UnquoteUsage(f)
-		fmt.Fprintf(writer, "\n# %s (default %v)\n", strings.Replace(usage, "\n    \t", "\n# ", -1), f.DefValue)
-		fmt.Fprintf(writer, "%v=%v\n", f.Name, f.Value.String())
+		if cur, ok := deduped[f.Value]; !ok || utf8.RuneCountInString(f.Name) > utf8.RuneCountInString(cur.Name) {
+			deduped[f.Value] = *f
+		}
+	})
+	flag.VisitAll(func(f *flag.Flag) {
+		if cur, ok := deduped[f.Value]; ok && cur.Name == f.Name {
+			_, usage := flag.UnquoteUsage(f)
+			fmt.Fprintf(writer, "\n# %s (default %v)\n", strings.Replace(usage, "\n    \t", "\n# ", -1), f.DefValue)
+			fmt.Fprintf(writer, "%v=%v\n", f.Name, f.Value.String())
+		}
 	})
 
 	// if we have obsolete keys left from the old config, preserve them in an
