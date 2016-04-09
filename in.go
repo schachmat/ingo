@@ -15,9 +15,12 @@ var (
 	obsoleteKeys = make(map[string]string)
 )
 
+// Parse should be called instead of `flag.Parse()` after all flags have been
+// added. It will read the config if existing, then write the config with
+// default values from the flags for unknown flags and then parse the flags.
 func Parse(appName string) error {
 	if flag.Parsed() {
-		return fmt.Errorf("flags have been parsed already.")
+		return fmt.Errorf("flags have been parsed already")
 	}
 
 	envname := strings.ToUpper(appName) + "RC"
@@ -25,7 +28,7 @@ func Parse(appName string) error {
 	if cPath == "" {
 		usr, err := user.Current()
 		if err != nil {
-			return fmt.Errorf("%v\nYou can set the environment variable %s to point to your config file as a workaround.", err, envname)
+			return fmt.Errorf("%v\nYou can set the environment variable %s to point to your config file as a workaround", err, envname)
 		}
 		cPath = path.Join(usr.HomeDir, "."+strings.ToLower(appName)+"rc")
 	}
