@@ -116,8 +116,7 @@ stderr when running `ingo.Parse`:
 !!!!!!!!!!
 ```
 
-All config files will also have a header like the following explaining the
-syntax:
+All config files will have a header like the following explaining the syntax:
 
 ```shell
 # [PROJECTNAME] configuration
