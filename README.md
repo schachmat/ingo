@@ -89,7 +89,7 @@ num=5
 style=epic
 ```
 
-If you remove the location flag from your programm, the config entry will be
+If you remove both location flags from your programm, the config entry will be
 rewritten to this:
 
 ```shell
@@ -106,7 +106,7 @@ location=space
 ```
 
 Also when such old flags are found, a warning like the following is printed to
-stderr:
+stderr when running `ingo.Parse`:
 
 ```shell
 !!!!!!!!!!
@@ -116,7 +116,8 @@ stderr:
 !!!!!!!!!!
 ```
 
-All config files will also have a header like the following:
+All config files will also have a header like the following explaining the
+syntax:
 
 ```shell
 # [PROJECTNAME] configuration
