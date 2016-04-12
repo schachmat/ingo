@@ -15,9 +15,23 @@ var (
 	obsoleteKeys = make(map[string]string)
 )
 
-// Parse should be called instead of `flag.Parse()` after all flags have been
-// added. It will read the config if existing, then write the config with
-// default values from the flags for unknown flags and then parse the flags.
+// Parse should be called by the user instead of `flag.Parse()` after all flags
+// have been added. It will read the following sources with the given priority:
+//   1. flags given on the command line
+//   2. values read from the config file
+//   3. default values from the  flags
+// Then it will update the config file only using sources 2 and 3, so given flag
+// values will not be persisted in the config file. The default value from the
+// flag will only be used if the flag could not be found in the config file
+// already. Values from the config file, which don't have a corresponding flag
+// anymore will be appended in a special section at the end of the new version
+// of the config file so their values won't get lost and a warning message will
+// be printed to stderr.
+//
+// The location of the config file depends on the appName argument. An appName
+// of `Ingo` would resolve to the config file path `$HOME/.ingorc`. This default
+// location can also be overwritten temporarily by setting an environment
+// variable like `INGORC` to point to the config file path.
 func Parse(appName string) error {
 	if flag.Parsed() {
 		return fmt.Errorf("flags have been parsed already")
