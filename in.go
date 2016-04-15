@@ -1,9 +1,13 @@
+// Package ingo provides a drop-in replacement for flag.Parse() with flags
+// persisted in a user editable configuration file.
 package ingo
 
 import (
 	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"os/user"
 	"path"
@@ -11,8 +15,20 @@ import (
 	"unicode/utf8"
 )
 
-var (
-	obsoleteKeys = make(map[string]string)
+const (
+	updateWarning = `!!!!!!!!!!
+! WARNING: %s was probably updated,
+! Check and update %s as necessary
+! and remove the last "deprecated" paragraph to disable this message!
+!!!!!!!!!!
+`
+	configHeader = `# %s configuration
+# 
+# This config has https://github.com/schachmat/ingo syntax.
+# Empty lines or lines starting with # will be ignored.
+# All other lines must look like "KEY=VALUE" (without the quotes).
+# The VALUE must not be enclosed in quotes as well!
+`
 )
 
 // Parse should be called by the user instead of `flag.Parse()` after all flags
@@ -47,27 +63,42 @@ func Parse(appName string) error {
 		cPath = path.Join(usr.HomeDir, "."+strings.ToLower(appName)+"rc")
 	}
 
-	if err := loadConfig(appName, cPath); err != nil {
-		return err
+	cf, err := os.OpenFile(cPath, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		return fmt.Errorf("unable to open %s config file %v for reading and writing: %v", appName, cPath, err)
 	}
-	if err := saveConfig(appName, cPath); err != nil {
-		return err
+	defer cf.Close()
+
+	// read config to buffer and parse
+	oldConf := new(bytes.Buffer)
+	obsoleteKeys := parseConfig(io.TeeReader(cf, oldConf))
+	if len(obsoleteKeys) > 0 {
+		fmt.Fprintf(os.Stderr, updateWarning, appName, cPath)
 	}
+
+	// write updated config to another buffer
+	newConf := new(bytes.Buffer)
+	fmt.Fprintf(newConf, configHeader, appName)
+	saveConfig(newConf, obsoleteKeys)
+
+	// only write the file if it changed
+	if !bytes.Equal(oldConf.Bytes(), newConf.Bytes()) {
+		if ofs, err := cf.Seek(0, 0); err != nil || ofs != 0 {
+			return fmt.Errorf("failed to seek to beginning of %s: %v", cPath, err)
+		} else if err = cf.Truncate(0); err != nil {
+			return fmt.Errorf("failed to truncate %s: %v", cPath, err)
+		} else if _, err = newConf.WriteTo(cf); err != nil {
+			return fmt.Errorf("failed to write %s: %v", cPath, err)
+		}
+	}
+
 	flag.Parse()
 	return nil
 }
 
-func loadConfig(appName, configPath string) error {
-	fin, err := os.Open(configPath)
-	if _, ok := err.(*os.PathError); ok {
-		fmt.Fprintf(os.Stderr, "No config file found for %s. Creating %s ...\n", appName, configPath)
-		return nil
-	} else if err != nil {
-		return fmt.Errorf("Unable to read %s config file %v: %v", appName, configPath, err)
-	}
-	defer fin.Close()
-
-	scanner := bufio.NewScanner(fin)
+func parseConfig(r io.Reader) map[string]string {
+	obsKeys := make(map[string]string)
+	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(line, "#") {
@@ -82,30 +113,14 @@ func loadConfig(appName, configPath string) error {
 		key, val := strings.TrimSpace(line[:i]), strings.TrimSpace(line[i+1:])
 
 		if err := flag.Set(key, val); err != nil {
-			obsoleteKeys[key] = val
+			obsKeys[key] = val
 			continue
 		}
 	}
-	return nil
+	return obsKeys
 }
 
-func saveConfig(appName, configPath string) error {
-	fout, err := os.Create(configPath)
-	if err != nil {
-		return fmt.Errorf("Unable to open %s config file %v for writing: %v", appName, configPath, err)
-	}
-	defer fout.Close()
-
-	writer := bufio.NewWriter(fout)
-	defer writer.Flush()
-
-	// header
-	fmt.Fprintf(writer, "# %s configuration\n# \n", appName)
-	fmt.Fprintln(writer, "# This config has https://github.com/schachmat/ingo syntax.")
-	fmt.Fprintln(writer, "# Empty lines or lines starting with # will be ignored.")
-	fmt.Fprintln(writer, "# All other lines must look like `KEY=VALUE` (without the quotes).")
-	fmt.Fprintln(writer, "# The VALUE must not be enclosed in quotes!")
-
+func saveConfig(w io.Writer, obsKeys map[string]string) {
 	// find flags pointing to the same variable. We will only write the longest
 	// named flag to the config file, the shorthand version is ignored.
 	deduped := make(map[flag.Value]flag.Flag)
@@ -117,24 +132,18 @@ func saveConfig(appName, configPath string) error {
 	flag.VisitAll(func(f *flag.Flag) {
 		if cur, ok := deduped[f.Value]; ok && cur.Name == f.Name {
 			_, usage := flag.UnquoteUsage(f)
-			fmt.Fprintf(writer, "\n# %s (default %v)\n", strings.Replace(usage, "\n    \t", "\n# ", -1), f.DefValue)
-			fmt.Fprintf(writer, "%v=%v\n", f.Name, f.Value.String())
+			usage = strings.Replace(usage, "\n    \t", "\n# ", -1)
+			fmt.Fprintf(w, "\n# %s (default %v)\n", usage, f.DefValue)
+			fmt.Fprintf(w, "%s=%v\n", f.Name, f.Value.String())
 		}
 	})
 
 	// if we have obsolete keys left from the old config, preserve them in an
 	// additional section at the end of the file
-	if len(obsoleteKeys) == 0 {
-		return nil
+	if obsKeys != nil && len(obsKeys) > 0 {
+		fmt.Fprintln(w, "\n\n# The following options are probably deprecated and not used currently!")
+		for key, val := range obsKeys {
+			fmt.Fprintf(w, "%v=%v\n", key, val)
+		}
 	}
-	fmt.Fprintln(os.Stderr, "!!!!!!!!!!")
-	fmt.Fprintln(os.Stderr, "! WARNING: The application was probably updated,")
-	fmt.Fprintln(os.Stderr, "! Check and update", configPath, " as necessary and")
-	fmt.Fprintln(os.Stderr, "! remove the last \"deprecated\" paragraph to disable this message!")
-	fmt.Fprintln(os.Stderr, "!!!!!!!!!!")
-	fmt.Fprintln(writer, "\n\n# The following options are probably deprecated and not used currently!")
-	for key, val := range obsoleteKeys {
-		fmt.Fprintf(writer, "%v=%v\n", key, val)
-	}
-	return nil
 }

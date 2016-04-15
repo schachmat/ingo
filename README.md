@@ -14,10 +14,11 @@ file.
 * shorthand flags pointing to the same variable as another flag will not be
   written to the config file to reduce noise. Both short and long version will
   still show up in the `-h` output.
+* only rewrite the config file, when it would change
 * old flags, which are not used anymore are not removed
 * when old flags are found, a warning is printed to stderr (see example below)
-* flags must not contain the characters `:` and `=` as they are used as
-  separator in the config file
+* flags must not contain the runes `:` and `=` and not start with `#` as these
+  runes are used as separators and comment prefix in the config file
 * no sections, namespaces or FlagSets other than the default one
 
 ##Installation
@@ -37,6 +38,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"github.com/schachmat/ingo"
 )
 
@@ -44,14 +46,18 @@ func main() {
 	num := flag.Int("num", 3, "`NUMBER` of times to\n    \tdo a barrel roll")
 	location := flag.String("location", "space", "`WHERE` to do the barrel roll")
 	flag.StringVar(location, "l", "space", "`WHERE` to do the barrel roll (shorthand)")
-	ingo.Parse("FILEPATH")
+	if err := ingo.Parse("keep_rollin"); err != nil {
+		log.Fatal(err)
+	}
 	fmt.Println(*num, *location)
 }
 ```
 
-The `\n    \t` separator (one newline, four spaces, one tab) will ensure that
-multi-line usage strings will be lay out correctly in the config file *and* in
-the `-h` help message. The code will create the following config file `FILEPATH`:
+The (one newline, four spaces, one tab) separator will ensure that multi-line
+usage strings will be laid out correctly in the config file *and* in the `-h`
+help message. The code will create the following config file `.keep_rollinrc`
+(or any other location if specified in the environment variable
+`KEEP_ROLLINRC`):
 
 ```shell
 # WHERE to do the barrel roll
@@ -110,21 +116,21 @@ stderr when running `ingo.Parse`:
 
 ```shell
 !!!!!!!!!!
-! WARNING: The application was probably updated,
-! Check and update FILEPATH as necessary and
-! remove the last "deprecated" paragraph to disable this message!
+! WARNING: keep_rollin was probably updated,
+! Check and update .keep_rollinrc as necessary
+! and remove the last "deprecated" paragraph to disable this message!
 !!!!!!!!!!
 ```
 
 All config files will have a header like the following explaining the syntax:
 
 ```shell
-# [PROJECTNAME] configuration
+# keep_rollin configuration
 #
 # This config has https://github.com/schachmat/ingo syntax.
 # Empty lines or lines starting with # will be ignored.
-# All other lines must look like `KEY=VALUE` (without the quotes).
-# The VALUE must not be enclosed in quotes!
+# All other lines must look like "KEY=VALUE" (without the quotes).
+# The VALUE must not be enclosed in quotes as well!
 ```
 
 ##License - ISC
