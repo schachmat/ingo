@@ -31,6 +31,15 @@ const configHeader = `# %s configuration
 
 var openOrCreate = os.OpenFile
 
+// fallbackHome can be used to determine home if user.Current() fails.
+func fallbackHome() string {
+	if home := os.Getenv("HOME"); home != "" {
+		return home
+	}
+	// For Windows.
+	return os.Getenv("UserProfile")
+}
+
 // Parse should be called by the user instead of `flag.Parse()` after all flags
 // have been added. It will read the following sources with the given priority:
 //   1. flags given on the command line
@@ -56,11 +65,16 @@ func Parse(appName string) error {
 	envname := strings.ToUpper(appName) + "RC"
 	cPath := os.Getenv(envname)
 	if cPath == "" {
+		var homeDir string
 		usr, err := user.Current()
-		if err != nil {
-			return fmt.Errorf("%v\nYou can set the environment variable %s to point to your config file as a workaround", err, envname)
+		if err == nil {
+			homeDir = usr.HomeDir
+		} else {
+			if homeDir = fallbackHome(); homeDir == "" {
+				return fmt.Errorf("%v\nYou can set the environment variable %s to point to your config file as a workaround", err, envname)
+			}
 		}
-		cPath = path.Join(usr.HomeDir, "."+strings.ToLower(appName)+"rc")
+		cPath = path.Join(homeDir, "."+strings.ToLower(appName)+"rc")
 	}
 
 	cf, err := openOrCreate(cPath, os.O_RDWR|os.O_CREATE, 0666)
