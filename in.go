@@ -15,21 +15,21 @@ import (
 	"unicode/utf8"
 )
 
-const (
-	updateWarning = `!!!!!!!!!!
+const updateWarning = `!!!!!!!!!!
 ! WARNING: %s was probably updated,
 ! Check and update %s as necessary
 ! and remove the last "deprecated" paragraph to disable this message!
 !!!!!!!!!!
 `
-	configHeader = `# %s configuration
+const configHeader = `# %s configuration
 # 
 # This config has https://github.com/schachmat/ingo syntax.
 # Empty lines or lines starting with # will be ignored.
 # All other lines must look like "KEY=VALUE" (without the quotes).
 # The VALUE must not be enclosed in quotes as well!
 `
-)
+
+var openOrCreate = os.OpenFile
 
 // Parse should be called by the user instead of `flag.Parse()` after all flags
 // have been added. It will read the following sources with the given priority:
@@ -63,7 +63,7 @@ func Parse(appName string) error {
 		cPath = path.Join(usr.HomeDir, "."+strings.ToLower(appName)+"rc")
 	}
 
-	cf, err := os.OpenFile(cPath, os.O_RDWR|os.O_CREATE, 0666)
+	cf, err := openOrCreate(cPath, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		return fmt.Errorf("unable to open %s config file %v for reading and writing: %v", appName, cPath, err)
 	}

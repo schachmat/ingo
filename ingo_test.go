@@ -3,7 +3,10 @@ package ingo
 import (
 	"bytes"
 	"flag"
+	"fmt"
+	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -30,6 +33,8 @@ really-long-hand=3
 obs=4
 `
 )
+
+var tmpFileName = ""
 
 func TestParseConfig(t *testing.T) {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
@@ -94,4 +99,57 @@ func TestSaveConfig(t *testing.T) {
 	if got != wantSavedNil {
 		t.Errorf("unexpected result:\nWANT:\n%s\n\nGOT:\n%s\n", wantSavedNil, got)
 	}
+}
+
+func TestParse(t *testing.T) {
+	// pipe stderr to a temporary file
+	oldErr := os.Stderr
+	var err error
+	if os.Stderr, err = ioutil.TempFile("", "ingo_test_err"); err != nil {
+		t.Errorf("failed to redirect stderr to tempfile")
+	}
+	defer os.Remove(os.Stderr.Name())
+
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+	oldFlag := flag.Int("old", 3, "old flag")
+	openOrCreate = func(n string, l int, p os.FileMode) (*os.File, error) {
+		f, err := ioutil.TempFile("", "ingo_testrc")
+		if err == nil {
+			tmpFileName = f.Name()
+		}
+		return f, err
+	}
+	if err := Parse("ingo_test"); err != nil {
+		t.Fatalf("unexpected error occured: %v", err)
+	}
+	defer os.Remove(tmpFileName)
+
+	if *oldFlag != 3 {
+		t.Errorf("oldFlag: (want: %d; got: %d)", 3, *oldFlag)
+	}
+
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+	newFlag := flag.Int("new", 3, "new flag")
+	os.Setenv("INGO_TESTRC", tmpFileName)
+	openOrCreate = os.OpenFile
+	if err := Parse("ingo_test"); err != nil {
+		t.Fatalf("unexpected error occured: %v", err)
+	}
+
+	if *newFlag != 3 {
+		t.Errorf("newFlag: (want: %d; got: %d)", 3, *newFlag)
+	}
+
+	if err := Parse("ingo_test"); err == nil || err.Error() != "flags have been parsed already" {
+		t.Errorf("expected Parse() to fail with `flags already parsed` error, but got: %v", err)
+	}
+
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+	openOrCreate = func(n string, f int, p os.FileMode) (*os.File, error) {
+		return nil, fmt.Errorf("expected")
+	}
+	if err := Parse("ingo_test"); err == nil || !strings.HasSuffix(err.Error(), "expected") {
+		t.Errorf("expected Parse() to fail with `expected` error, but got: %v", err)
+	}
+	os.Stderr = oldErr
 }
