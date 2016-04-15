@@ -30,7 +30,8 @@ go get -u github.com/schachmat/ingo
 ##Usage example
 
 Just setup your flags with defaults like you are used to do. Instead of
-`flag.Parse()` you have to call `ingo.Parse(CONFIG_FILE_PATH)`. Thats all.
+`flag.Parse()` you have to call `ingo.Parse(APPLICATION_NAME)` and check if an
+error is returned. Thats all.
 
 ```go
 package main
