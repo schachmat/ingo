@@ -106,8 +106,11 @@ func TestParse(t *testing.T) {
 	oldErr := os.Stderr
 	var err error
 	if os.Stderr, err = ioutil.TempFile("", "ingo_test_err"); err != nil {
-		t.Errorf("failed to redirect stderr to tempfile")
+		t.Fatalf("failed to redirect stderr to tempfile")
 	}
+	defer func() {
+		os.Stderr = oldErr
+	}()
 	defer os.Remove(os.Stderr.Name())
 
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
@@ -151,5 +154,4 @@ func TestParse(t *testing.T) {
 	if err := Parse("ingo_test"); err == nil || !strings.HasSuffix(err.Error(), "expected") {
 		t.Errorf("expected Parse() to fail with `expected` error, but got: %v", err)
 	}
-	os.Stderr = oldErr
 }
