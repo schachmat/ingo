@@ -1,3 +1,7 @@
+[![Godoc](https://img.shields.io/badge/godoc-reference-blue.svg)](https://godoc.org/github.com/schachmat/ingo)
+[![Go Report Card](https://goreportcard.com/badge/schachmat/ingo)](https://goreportcard.com/report/schachmat/ingo)
+[![Coverage](https://gocover.io/_badge/github.com/schachmat/ingo)](https://gocover.io/github.com/schachmat/ingo)
+
 **ingo** is a simple Go library helping you to persist flags in a ini-like config
 file.
 
