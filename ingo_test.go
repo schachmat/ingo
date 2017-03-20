@@ -58,7 +58,7 @@ func TestParseConfig(t *testing.T) {
 		t.Errorf("assignment with `:`: (want: 4; got: %d)", *assc)
 	}
 	if *dup != 5 {
-		t.Errorf("the last occuring entry of duplicate flags from the file should be used")
+		t.Errorf("the last occurring entry of duplicate flags from the file should be used")
 	}
 	if *shorthand != 4 {
 		t.Errorf("shorthand assignment not working")
@@ -67,7 +67,7 @@ func TestParseConfig(t *testing.T) {
 		t.Errorf("obsolete key not parsed")
 	}
 	if obsKeys["obsdup"] != "5" {
-		t.Errorf("the last occuring entry of duplicate obsolete flags from the file should be used")
+		t.Errorf("the last occurring entry of duplicate obsolete flags from the file should be used")
 	}
 }
 
@@ -123,7 +123,7 @@ func TestParse(t *testing.T) {
 		return f, err
 	}
 	if err := Parse("ingo_test"); err != nil {
-		t.Fatalf("unexpected error occured: %v", err)
+		t.Fatalf("unexpected error occurred: %v", err)
 	}
 	defer os.Remove(tmpFileName)
 
@@ -136,7 +136,7 @@ func TestParse(t *testing.T) {
 	os.Setenv("INGO_TESTRC", tmpFileName)
 	openOrCreate = os.OpenFile
 	if err := Parse("ingo_test"); err != nil {
-		t.Fatalf("unexpected error occured: %v", err)
+		t.Fatalf("unexpected error occurred: %v", err)
 	}
 
 	if *newFlag != 3 {
