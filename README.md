@@ -5,7 +5,7 @@
 **ingo** is a simple Go library helping you to persist flags in a ini-like config
 file.
 
-##Features and limitations
+## Features and limitations
 
 * Requires Go 1.5 or later
 * automatically creates config file, if it does not exist yet
@@ -25,13 +25,13 @@ file.
   runes are used as separators and comment prefix in the config file
 * no sections, namespaces or FlagSets other than the default one
 
-##Installation
+## Installation
 
 ```shell
 go get -u github.com/schachmat/ingo
 ```
 
-##Usage example
+## Usage example
 
 Just setup your flags with defaults like you are used to do. Instead of
 `flag.Parse()` you have to call `ingo.Parse(APPLICATION_NAME)` and check if an
@@ -138,7 +138,7 @@ All config files will have a header like the following explaining the syntax:
 # The VALUE must not be enclosed in quotes as well!
 ```
 
-##License - ISC
+## License - ISC
 
 Copyright (c) 2016,  <teichm@in.tum.de>
 
